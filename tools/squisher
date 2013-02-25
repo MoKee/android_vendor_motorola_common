@@ -4,7 +4,7 @@
 # thanks to cyanogen
 #
 
-. $ANDROID_BUILD_TOP/vendor/motorola/omap4-common/tools/functions
+. $ANDROID_BUILD_TOP/vendor/motorola/common/tools/functions
 
 OUT_TARGET_HOST=`uname -a | grep Darwin`
 if [ -z "$OUT_TARGET_HOST" ]
@@ -30,7 +30,7 @@ if [ ! -f "$OTAPACKAGE" ]; then
 	exit 1
 fi
 
-OPTICHARGER=$ANDROID_BUILD_TOP/vendor/motorola/omap4-common/tools/opticharger
+OPTICHARGER=$ANDROID_BUILD_TOP/vendor/motorola/common/tools/opticharger
 QUIET=-q
 DELETE_BINS="applypatch applypatch_static check_prereq recovery updater"
 
@@ -104,24 +104,24 @@ fi
 # Determine what to name the new signed package
 REALDATE=`date -u +%Y%m%d`
 
-if [ -f $ANDROID_BUILD_TOP/vendor/cm/LICENSE ];
-then
-MODVERSION=`sed -n -e'/ro\.cm\.version/s/^.*=//p' $REPACK/ota/system/build.prop`
+MODVERSION=`sed -n -e'/ro\.mk\.version/s/^.*=//p' $REPACK/ota/system/build.prop`
 echo -e $CL_CYN"MODVERSION: $MODVERSION"$CL_RST
-OUTFILE=$OUT/cm-$MODVERSION.zip
-elif [ -f $ANDROID_BUILD_TOP/vendor/aokp/vendorsetup.sh ];
-then
-VERSION=`sed -n -e'/ro.aokp.version/s/^.*=//p' $REPACK/ota/system/build.prop`
-MODVERSION="$VERSION"
-echo -e $CL_CYN"MODVERSION: $MODVERSION"$CL_RST
-OUTFILE=$OUT/JB-$MODVERSION.zip
-elif [ -f $ANDROID_BUILD_TOP/vendor/cna/vendorsetup.sh ];
-then
-MODVERSION=`sed -n -e'/ro\.modversion/s/^.*Codename-Android-//p' $REPACK/ota/system/build.prop`
-OUTFILE=$OUT/JB-$TARGET_PRODUCT-$REALDATE.zip
-echo -e $CL_CYN"MODVERSION: $MODVERSION"$CL_RST
+OUTFILE=$OUT/$MODVERSION.zip
+
+# Create Release and Experimental folder
+[ ! -d $ANDROID_BUILD_TOP/out/device ] && mkdir $ANDROID_BUILD_TOP/out/device
+[ ! -d $ANDROID_BUILD_TOP/out/device/$CM_BUILD ] && mkdir $ANDROID_BUILD_TOP/out/device/$CM_BUILD
+[ ! -d $ANDROID_BUILD_TOP/out/device/$CM_BUILD/Release ] && mkdir $ANDROID_BUILD_TOP/out/device/$CM_BUILD/Release
+[ ! -d $ANDROID_BUILD_TOP/out/device/$CM_BUILD/Experimental ] && mkdir $ANDROID_BUILD_TOP/out/device/$CM_BUILD/Experimental
+
+if [ "$MK_RELEASE" = "true" ]; then
+	cp $OUTFILE $ANDROID_BUILD_TOP/out/device/$CM_BUILD/Release
+	echo ""
+	echo "Zip files copied to Release folder"
 else
-OUTFILE=$OUT/JB-$TARGET_PRODUCT-$REALDATE.zip
+	cp $OUTFILE $ANDROID_BUILD_TOP/out/device/$CM_BUILD/Experimental
+	echo ""
+	echo "Zip files copied to Experimental folder"
 fi
 
 # Pack it up and sign
